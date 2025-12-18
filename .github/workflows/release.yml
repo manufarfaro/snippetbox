@@ -1,0 +1,77 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+env:
+  APP_NAME: snippetbox
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.5'
+
+      - name: Generate release name
+        id: release_name
+        run: |
+          TIMESTAMP=$(date -u +"%Y%m%d-%H%M")
+          RELEASE_NAME="${TIMESTAMP}-${{ env.APP_NAME }}"
+          echo "RELEASE_NAME=${RELEASE_NAME}" >> $GITHUB_OUTPUT
+          echo "TIMESTAMP=${TIMESTAMP}" >> $GITHUB_OUTPUT
+
+      - name: Create dist directory
+        run: mkdir -p dist
+
+      - name: Build for Linux
+        run: |
+          GOOS=linux GOARCH=amd64 go build -o dist/${{ env.APP_NAME }}-linux-x86_64 ./cmd/web
+
+      - name: Build for macOS (Intel)
+        run: |
+          GOOS=darwin GOARCH=amd64 go build -o dist/${{ env.APP_NAME }}-macos-x86_64 ./cmd/web
+
+      - name: Build for macOS (Apple Silicon)
+        run: |
+          GOOS=darwin GOARCH=arm64 go build -o dist/${{ env.APP_NAME }}-macos-aarch64 ./cmd/web
+
+      - name: Build for Windows
+        run: |
+          GOOS=windows GOARCH=amd64 go build -o dist/${{ env.APP_NAME }}-windows-x86_64.exe ./cmd/web
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            dist/${{ env.APP_NAME }}-linux-x86_64
+            dist/${{ env.APP_NAME }}-macos-x86_64
+            dist/${{ env.APP_NAME }}-macos-aarch64
+            dist/${{ env.APP_NAME }}-windows-x86_64.exe
+          tag_name: ${{ steps.release_name.outputs.RELEASE_NAME }}
+          name: Release ${{ steps.release_name.outputs.TIMESTAMP }}
+          body: |
+            Automated release from commit ${{ github.sha }}
+
+            **Download the appropriate binary for your platform:**
+            - Linux: `${{ env.APP_NAME }}-linux-x86_64`
+            - macOS (Intel): `${{ env.APP_NAME }}-macos-x86_64`
+            - macOS (Apple Silicon): `${{ env.APP_NAME }}-macos-aarch64`
+            - Windows: `${{ env.APP_NAME }}-windows-x86_64.exe`
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
