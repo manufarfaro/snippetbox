@@ -25,10 +25,13 @@ A web application for managing and sharing code snippets, built following the "L
 git clone https://github.com/manufarfaro/snippetbox.git
 cd snippetbox
 
-# Run the application
+# Run the application (defaults to port 4000)
 go run ./cmd/web
 
-# The server will start on http://localhost:4000
+# Or specify a custom address/port
+go run ./cmd/web -addr=":8080"
+
+# The server will start on http://localhost:4000 (or your specified port)
 ```
 
 ## Building
@@ -45,7 +48,15 @@ GOOS=windows GOARCH=amd64 go build -o snippetbox-windows.exe ./cmd/web
 
 ## Development
 
-The application runs on port `4000` by default. You can modify the port in `cmd/web/main.go`.
+The application runs on port `4000` by default. You can change the port using the `-addr` flag:
+
+```bash
+# Run on a different port
+go run ./cmd/web -addr=":8080"
+
+# Or when running the built binary
+./snippetbox -addr=":8080"
+```
 
 ## CI/CD
 
