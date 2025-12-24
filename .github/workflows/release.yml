@@ -35,21 +35,8 @@ jobs:
       - name: Create dist directory
         run: mkdir -p dist
 
-      - name: Build for Linux
-        run: |
-          GOOS=linux GOARCH=amd64 go build -o dist/${{ env.APP_NAME }}-linux-x86_64 ./cmd/web
-
-      - name: Build for macOS (Intel)
-        run: |
-          GOOS=darwin GOARCH=amd64 go build -o dist/${{ env.APP_NAME }}-macos-x86_64 ./cmd/web
-
-      - name: Build for macOS (Apple Silicon)
-        run: |
-          GOOS=darwin GOARCH=arm64 go build -o dist/${{ env.APP_NAME }}-macos-aarch64 ./cmd/web
-
-      - name: Build for Windows
-        run: |
-          GOOS=windows GOARCH=amd64 go build -o dist/${{ env.APP_NAME }}-windows-x86_64.exe ./cmd/web
+      - name: Build all platforms
+        run: make build/all
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -74,4 +61,3 @@ jobs:
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
