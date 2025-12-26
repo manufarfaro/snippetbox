@@ -10,6 +10,7 @@
 
 # Application binary
 snippetbox
+web
 
 # Distribution directory
 dist/
@@ -34,5 +35,5 @@ go.work.sum
 .env
 
 # Editor/IDE
-# .idea/
-# .vscode/
+.idea/
+.vscode/

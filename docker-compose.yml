@@ -1,0 +1,38 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: snippetbox
+      POSTGRES_USER: snippetbox
+      POSTGRES_PASSWORD: snippetbox
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U snippetbox -d snippetbox"]
+      interval: 2s
+      timeout: 5s
+      retries: 5
+
+  migrate:
+    image: migrate/migrate
+    volumes:
+      - ./migrations:/migrations
+    command: ["-path", "/migrations", "-database", "postgres://snippetbox:snippetbox@db:5432/snippetbox?sslmode=disable", "up"]
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build: .
+    ports:
+      - "4000:4000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      DB_DSN: postgres://snippetbox:snippetbox@db:5432/snippetbox?sslmode=disable
+
+volumes:
+  pgdata:

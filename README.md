@@ -17,6 +17,8 @@ A web application for managing and sharing code snippets, built following the "L
 
 - **Go** 1.25.5+
   ([Install Go](https://go.dev/doc/install))
+- **golang-migrate** for database migrations
+  ([Install golang-migrate](https://github.com/golang-migrate/migrate/tree/master/cmd/migrate))
 
 ## Quick Start
 
