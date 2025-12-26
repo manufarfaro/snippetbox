@@ -2,6 +2,7 @@ package models
 
 import (
 	"database/sql"
+	"errors"
 	"time"
 )
 
@@ -18,17 +19,21 @@ type SnippetModel struct {
 }
 
 func (m *SnippetModel) Get(id int) (Snippet, error) {
-	stmt := "SELECT title, content, created_at, expires_at FROM snippets WHERE id=$1"
-	snippet := Snippet{}
-	err := m.DB.QueryRow(stmt, id).Scan(snippet.Title, snippet.Content, snippet.CreatedAt, snippet.ExpiresAt)
+	stmt := "SELECT title, content, created_at, expires_at FROM snippets WHERE expires_at > NOW() AND id=$1"
+	var snippet Snippet
+	err := m.DB.QueryRow(stmt, id).Scan(&snippet.Title, &snippet.Content, &snippet.CreatedAt, &snippet.ExpiresAt)
 	if err != nil {
-		return Snippet{}, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return Snippet{}, ErrNoRecord
+		} else {
+			return Snippet{}, err
+		}
 	}
 	return snippet, nil
 }
 
 func (m *SnippetModel) Latest() ([]Snippet, error) {
-	stmt := "SELECT id, title, content, created_at, expires_at FROM snippets ORDER BY created_at DESC LIMIT 10"
+	stmt := "SELECT id, title, content, created_at, expires_at FROM snippets WHERE expires_at > NOW() ORDER BY id DESC LIMIT 10"
 	rows, err := m.DB.Query(stmt)
 	if err != nil {
 		return nil, err
@@ -36,9 +41,9 @@ func (m *SnippetModel) Latest() ([]Snippet, error) {
 
 	defer rows.Close()
 
-	snippets := []Snippet{}
+	var snippets []Snippet
 	for rows.Next() {
-		snippet := Snippet{}
+		var snippet Snippet
 		err := rows.Scan(&snippet.ID, &snippet.Title, &snippet.Content, &snippet.CreatedAt, &snippet.ExpiresAt)
 		if err != nil {
 			return nil, err
