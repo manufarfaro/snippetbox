@@ -19,9 +19,9 @@ type SnippetModel struct {
 }
 
 func (m *SnippetModel) Get(id int) (Snippet, error) {
-	stmt := "SELECT title, content, created_at, expires_at FROM snippets WHERE expires_at > NOW() AND id=$1"
+	stmt := "SELECT id, title, content, created_at, expires_at FROM snippets WHERE expires_at > NOW() AND id=$1"
 	var snippet Snippet
-	err := m.DB.QueryRow(stmt, id).Scan(&snippet.Title, &snippet.Content, &snippet.CreatedAt, &snippet.ExpiresAt)
+	err := m.DB.QueryRow(stmt, id).Scan(&snippet.ID, &snippet.Title, &snippet.Content, &snippet.CreatedAt, &snippet.ExpiresAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return Snippet{}, ErrNoRecord
